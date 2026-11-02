@@ -7,7 +7,7 @@ Hosting config for my personal sites, all on one DigitalOcean droplet running Do
 | wtc.wingnutstables.com | `wtc-intranet` | always |
 | fadretreat.com | `fadretreat` | always *(not moved yet)* |
 | groop.zone | `groopzone` | always *(not moved yet)* |
-| Wingnut Hunt | `hunt` | only during events *(not moved yet)* |
+| hunt.wingnutstables.com | `wingnut-hunt` | only during events |
 
 ## The server
 
@@ -102,8 +102,8 @@ docker stats --no-stream                # memory/CPU per container
 Hunt is on the `events` profile, so a normal `docker compose up -d` leaves it off.
 
 ```bash
-docker compose --profile events up -d hunt    # start for the event
-docker compose stop hunt                       # stop afterwards
+docker compose --profile events up -d wingnut-hunt    # start for the event
+docker compose stop wingnut-hunt                       # stop afterwards
 ```
 
 ### Update Caddy itself

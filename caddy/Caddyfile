@@ -27,3 +27,16 @@ wtc.wingnutstables.com {
 	}
 	reverse_proxy wtc-intranet:3000
 }
+
+hunt.wingnutstables.com {
+	request_body {
+		max_size 50MB
+	}
+	reverse_proxy wingnut-hunt:3000
+
+	# Hunt only runs during events. When it's stopped, say so instead of a bare 502.
+	handle_errors 502 503 {
+		header Content-Type "text/html; charset=utf-8"
+		respond "<!doctype html><title>Wingnut Hunt</title><body style=\"font-family:system-ui;text-align:center;padding:4rem 1rem\"><h1>Wingnut Hunt</h1><p>The hunt is closed between events. See you at the next faire!</p></body>" 503
+	}
+}

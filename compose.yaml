@@ -44,6 +44,24 @@ services:
     mem_limit: 128m               # k8s limit, which it ran under fine
     cpus: 0.5
 
+  # ---------------------------------------------------------------
+  # Wingnut Hunt — hunt.wingnutstables.com
+  # Only runs during events (profile "events"):
+  #   docker compose --profile events up -d wingnut-hunt
+  #   docker compose stop wingnut-hunt
+  # ---------------------------------------------------------------
+  wingnut-hunt:
+    image: ghcr.io/dannygypsy/wingnut-hunt:0.1.6
+    profiles: ["events"]
+    restart: unless-stopped
+    env_file: ./env/wingnut-hunt.env
+    environment:
+      NODE_ENV: production
+    expose:
+      - "3000"
+    mem_limit: 256m               # Next.js; k8s limit was 128m
+    cpus: 0.5
+
 volumes:
   caddy_data:
   caddy_config:
