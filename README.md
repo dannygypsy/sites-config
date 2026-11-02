@@ -16,6 +16,7 @@ Hosting config for my personal sites, all on one DigitalOcean droplet running Do
 - **Login:** `ssh deploy@157.245.13.34` (root and password login are off)
 - **Config lives in:** `/opt/sites` (a clone of this repo)
 - **Database:** DigitalOcean Managed MySQL, also NYC3. Apps connect to its **private** hostname (starts with `private-`), port 25060, TLS required. The droplet is in the database's Trusted Sources.
+- **Cloudflare:** sites are proxied (orange cloud), SSL mode **Full (strict)**. Caddy gets its certificates through Cloudflare DNS (API token in `env/caddy.env`), so renewals work whether a record is proxied or not, and it trusts Cloudflare's IP ranges so apps see real visitor IPs.
 - **Security updates** install automatically; the server reboots itself at 04:30 UTC when an update needs it, and the containers come back on their own.
 
 ## What's in here
@@ -23,6 +24,7 @@ Hosting config for my personal sites, all on one DigitalOcean droplet running Do
 ```
 compose.yaml          every app, plus Caddy
 caddy/Caddyfile       which hostname goes to which app; Caddy handles HTTPS
+caddy-image/          builds Caddy with the Cloudflare plugins
 env/*.env.example     list of secrets each app needs (no real values)
 setup-droplet.sh      one-time setup for a brand-new droplet
 ```
@@ -104,6 +106,15 @@ docker compose --profile events up -d hunt    # start for the event
 docker compose stop hunt                       # stop afterwards
 ```
 
+### Update Caddy itself
+
+Caddy is built on the server (it needs the Cloudflare plugins), so it isn't pulled like the apps:
+
+```bash
+docker compose build --pull caddy
+docker compose up -d caddy
+```
+
 ### Clean up old images
 
 Every deploy leaves the previous image on disk. Once in a while:
@@ -125,7 +136,7 @@ docker image prune -a      # removes images no container is using
    ```
 3. Add `env/example-app.env.example` listing the secrets it needs.
 4. Commit and push. On the server: `git pull`, create `env/example-app.env` with real values, `chmod 600` it, then `docker compose up -d` and reload Caddy.
-5. In Cloudflare, point the domain at 157.245.13.34 **grey-clouded (DNS only)** until Caddy logs `certificate obtained successfully`. Then orange-cloud it if you want, with SSL mode **Full (strict)**.
+5. In Cloudflare, add an A record pointing at 157.245.13.34, **proxied** (orange cloud), and check the zone's SSL mode is **Full (strict)**. Make sure the Cloudflare API token in `env/caddy.env` covers that zone (new domain = edit the token's zone list). Caddy logs `certificate obtained successfully` on the first request.
 
 **Never give an app `ports:`.** Docker opens published ports straight through the firewall (it bypasses ufw). Only Caddy publishes ports; apps use `expose` and are reached through Caddy.
 
@@ -160,8 +171,8 @@ Data lives in the managed database, so a new droplet is only config. About an ho
    ```bash
    echo '<token>' | docker login ghcr.io -u dannygypsy --password-stdin
    ```
-6. Recreate what isn't in git: each `env/<app>.env` (from the `.example` files) and `certs/` (download the CA from the database's Connection Details page, using the file name the apps expect).
-7. `docker compose up -d`, check the logs, then move DNS over.
+6. Recreate what isn't in git: each `env/<app>.env` and `env/caddy.env` (from the `.example` files) and `certs/` (download the CA from the database's Connection Details page, using the file name the apps expect).
+7. `docker compose build caddy`, then `docker compose up -d`, check the logs, then move DNS over.
 
 ---
 
@@ -169,7 +180,7 @@ Data lives in the managed database, so a new droplet is only config. About an ho
 
 | Symptom | Likely cause |
 |---|---|
-| Site shows a certificate error | Caddy couldn't get a certificate. `docker compose logs caddy`. Usually DNS not pointing here yet, or Cloudflare proxy on during the first issue — grey-cloud it. |
+| Site shows a certificate error / Cloudflare 526 | Caddy couldn't get a certificate. `docker compose logs caddy`. Usually the Cloudflare API token is missing, expired, or doesn't cover that domain's zone. |
 | Endless redirect loop | Cloudflare SSL mode is Flexible. Set it to **Full (strict)**. |
 | App logs `HANDSHAKE_SSL_ERROR` | App can't find the DO CA. Check `certs/` has the file under the expected name. |
 | App logs `ER_ACCESS_DENIED` / `ETIMEDOUT` to the DB | Using the public DB hostname, or the droplet isn't in Trusted Sources. |

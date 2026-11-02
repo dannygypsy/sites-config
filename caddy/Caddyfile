@@ -4,11 +4,26 @@
 
 {
 	email danny@wingnutstables.com
+
+	# Prove domain ownership through Cloudflare DNS, so certificates issue
+	# and renew whether a record is proxied (orange cloud) or not.
+	acme_dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+
+	servers {
+		# Proxied requests arrive from Cloudflare. Trust its published IP
+		# ranges and take the visitor's real IP from CF-Connecting-IP.
+		trusted_proxies cloudflare {
+			interval 12h
+			timeout 15s
+		}
+		client_ip_headers CF-Connecting-IP X-Forwarded-For
+	}
 }
 
 wtc.wingnutstables.com {
+	# Same upload limit as the old ingress proxy-body-size
 	request_body {
-		max_size 50MB    # same as the old ingress proxy-body-size
+		max_size 50MB
 	}
 	reverse_proxy wtc-intranet:3000
 }

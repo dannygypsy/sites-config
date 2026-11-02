@@ -8,8 +8,13 @@ name: sites
 
 services:
   caddy:
-    image: caddy:2
+    # Standard Caddy plus two Cloudflare plugins, built on the server from
+    # caddy-image/Dockerfile. To update Caddy itself:
+    #   docker compose build --pull caddy && docker compose up -d caddy
+    build: ./caddy-image
+    image: sites-caddy:local
     restart: unless-stopped
+    env_file: ./env/caddy.env     # CLOUDFLARE_API_TOKEN
     ports:
       - "80:80"
       - "443:443"
