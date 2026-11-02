@@ -45,6 +45,32 @@ services:
     cpus: 0.5
 
   # ---------------------------------------------------------------
+  # GroopZone (old Express app) — groop.zone, groopzone.com, www.wingnutstables.com
+  # One copy: the app mostly waits on the database, which one Node process handles
+  # well. If an on-sale ever pins it at ~100% CPU (docker stats), set replicas: 2
+  # to use both cores. Caddy finds every copy automatically. Each copy adds its
+  # own DB connection pool against the database's limit of 75.
+  # ---------------------------------------------------------------
+  groopzone:
+    image: ghcr.io/dannygypsy/groopzone:2.1.5
+    restart: unless-stopped
+    deploy:
+      replicas: 1
+    env_file: ./env/groopzone.env
+    environment:
+      NODE_ENV: production
+      REQUEST_LOG_FORMAT: dev
+      SYSTEM_STATUS: "OPEN"
+      DB_PORT: "25060"
+      DB_NAME: groopzone
+    volumes:
+      - ./certs:/etc/ssl/do:ro    # DO database CA
+    expose:
+      - "3001"
+    mem_limit: 512m               # per copy; k8s limit was 256m
+    cpus: 1.5                     # per copy; leaves room for the other apps
+
+  # ---------------------------------------------------------------
   # FAD Retreat — fadretreat.com, www.fadretreat.com, test.fadretreat.com
   # ---------------------------------------------------------------
   fadretreat:
