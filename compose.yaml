@@ -45,6 +45,30 @@ services:
     cpus: 0.5
 
   # ---------------------------------------------------------------
+  # FAD Retreat — fadretreat.com, www.fadretreat.com, test.fadretreat.com
+  # ---------------------------------------------------------------
+  fadretreat:
+    image: ghcr.io/dannygypsy/fadretreat:1.0.38
+    restart: unless-stopped
+    env_file: ./env/fadretreat.env
+    environment:
+      NODE_ENV: production
+      REQUEST_LOG_FORMAT: dev
+      RETREAT_GROOP: "22"
+      EVENT_START: "Sep 19, 2027 21:00:00"
+      EVENT_END: "Sep 26, 2027 15:00:00"
+      DB_PORT: "25060"
+      DB_NAME: groopzone
+      DB_SSL: "true"
+      DB_SSL_CA: /etc/ssl/do/ca-certificate.crt
+    volumes:
+      - ./certs:/etc/ssl/do:ro    # DO database CA
+    expose:
+      - "3001"
+    mem_limit: 256m               # k8s limit
+    cpus: 0.5
+
+  # ---------------------------------------------------------------
   # Wingnut Hunt — hunt.wingnutstables.com
   # Only runs during events (profile "events"):
   #   docker compose --profile events up -d wingnut-hunt

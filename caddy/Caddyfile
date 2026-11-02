@@ -28,6 +28,13 @@ wtc.wingnutstables.com {
 	reverse_proxy wtc-intranet:3000
 }
 
+fadretreat.com, www.fadretreat.com, test.fadretreat.com {
+	request_body {
+		max_size 50MB
+	}
+	reverse_proxy fadretreat:3001
+}
+
 hunt.wingnutstables.com {
 	request_body {
 		max_size 50MB

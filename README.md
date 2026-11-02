@@ -5,7 +5,7 @@ Hosting config for my personal sites, all on one DigitalOcean droplet running Do
 | Site | Service | Runs |
 |---|---|---|
 | wtc.wingnutstables.com | `wtc-intranet` | always |
-| fadretreat.com | `fadretreat` | always *(not moved yet)* |
+| fadretreat.com (+ www, test) | `fadretreat` | always |
 | groop.zone | `groopzone` | always *(not moved yet)* |
 | hunt.wingnutstables.com | `wingnut-hunt` | only during events |
 
