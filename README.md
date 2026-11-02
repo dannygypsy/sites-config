@@ -26,6 +26,7 @@ compose.yaml          every app, plus Caddy
 caddy/Caddyfile       which hostname goes to which app; Caddy handles HTTPS
 caddy-image/          builds Caddy with the Cloudflare plugins
 env/*.env.example     list of secrets each app needs (no real values)
+systemd/              timers for GroopZone's scheduled jobs
 setup-droplet.sh      one-time setup for a brand-new droplet
 ```
 
@@ -106,6 +107,34 @@ docker compose --profile events up -d wingnut-hunt    # start for the event
 docker compose stop wingnut-hunt                       # stop afterwards
 ```
 
+### Scheduled jobs (GroopZone notifications)
+
+Three systemd timers run GroopZone's notification scripts, replacing the old k8s CronJobs. Times are Eastern; daylight saving is handled.
+
+| Timer | When | Runs |
+|---|---|---|
+| `gz-daily-notify` | 10:00 daily | `notification_email.js low` |
+| `gz-hourly-notify` | every hour | `notification_email.js high` |
+| `gz-news-notify` | every 30 min | `article_notifications.js` |
+
+Each run is `docker compose run --rm groopzone-job <script>` — a fresh container from the groopzone image, same secrets and DB certificate, removed afterwards. A run won't start while the previous one is still going. The job image tag in `compose.yaml` (`groopzone-job`) should normally match the app's.
+
+```bash
+systemctl list-timers 'gz-*'                     # next and last run of each
+journalctl -u gz-hourly-notify -n 50             # output of recent runs
+sudo systemctl start gz-news-notify              # run one now, by hand
+```
+
+Install or update the timers after changing anything in `systemd/`:
+
+```bash
+sudo cp /opt/sites/systemd/gz-* /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now gz-daily-notify.timer gz-hourly-notify.timer gz-news-notify.timer
+```
+
+To pause one: `sudo systemctl stop gz-news-notify.timer` (and `disable` to keep it off after reboots).
+
 ### Update Caddy itself
 
 Caddy is built on the server (it needs the Cloudflare plugins), so it isn't pulled like the apps:
@@ -173,6 +202,7 @@ Data lives in the managed database, so a new droplet is only config. About an ho
    ```
 6. Recreate what isn't in git: each `env/<app>.env` and `env/caddy.env` (from the `.example` files) and `certs/` (download the CA from the database's Connection Details page, using the file name the apps expect).
 7. `docker compose build caddy`, then `docker compose up -d`, check the logs, then move DNS over.
+8. Install the scheduled-job timers (see "Scheduled jobs" above).
 
 ---
 

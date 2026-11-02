@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule for gz-news-notify
+
+[Timer]
+OnCalendar=*-*-* *:00/30:00 America/New_York
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

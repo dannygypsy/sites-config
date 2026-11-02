@@ -1,0 +1,10 @@
+[Unit]
+Description=GroopZone news article notifications
+Requires=docker.service
+After=docker.service
+
+[Service]
+Type=oneshot
+User=deploy
+WorkingDirectory=/opt/sites
+ExecStart=/usr/bin/docker compose run --rm --no-deps groopzone-job cron/article_notifications.js

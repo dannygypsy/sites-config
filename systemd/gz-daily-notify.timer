@@ -1,0 +1,9 @@
+[Unit]
+Description=Schedule for gz-daily-notify
+
+[Timer]
+OnCalendar=*-*-* 10:00:00 America/New_York
+AccuracySec=1min
+
+[Install]
+WantedBy=timers.target

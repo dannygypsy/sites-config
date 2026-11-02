@@ -71,6 +71,25 @@ services:
     cpus: 1.5                     # per copy; leaves room for the other apps
 
   # ---------------------------------------------------------------
+  # GroopZone scheduled jobs — never started by `up`; run by the systemd
+  # timers in systemd/ as:  docker compose run --rm groopzone-job <script> [args]
+  # Same image, secrets and DB certificate as the app.
+  # ---------------------------------------------------------------
+  groopzone-job:
+    image: ghcr.io/dannygypsy/groopzone:2.1.5
+    profiles: ["jobs"]
+    entrypoint: ["node"]
+    env_file: ./env/groopzone.env
+    environment:
+      NODE_ENV: production
+      REQUEST_LOG_FORMAT: dev
+      DB_PORT: "25060"
+      DB_NAME: groopzone
+    volumes:
+      - ./certs:/etc/ssl/do:ro
+    mem_limit: 256m
+
+  # ---------------------------------------------------------------
   # FAD Retreat — fadretreat.com, www.fadretreat.com, test.fadretreat.com
   # ---------------------------------------------------------------
   fadretreat:
