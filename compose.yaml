@@ -1,8 +1,5 @@
 # /opt/sites/compose.yaml — all personal sites on sites-nyc3-1
-#
-#   docker compose up -d                 start / update everything
-#   docker compose logs -f <service>     follow one app's logs
-#   docker compose pull <service> && docker compose up -d <service>   deploy a new image
+# Repo: sites-config. See README.md for how to deploy changes.
 #
 # Only Caddy publishes ports. Apps are reachable only through Caddy
 # (Docker bypasses ufw for published ports, so never add `ports:` to an app).
@@ -18,7 +15,9 @@ services:
       - "443:443"
       - "443:443/udp"   # HTTP/3
     volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      # Mount the FOLDER, not the single file: git pull replaces files rather than
+      # editing them, and a single-file mount would keep showing Caddy the old one.
+      - ./caddy:/etc/caddy:ro
       - caddy_data:/data        # certificates — keep this volume
       - caddy_config:/config
     mem_limit: 128m

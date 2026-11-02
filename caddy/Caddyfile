@@ -1,0 +1,14 @@
+# /opt/sites/caddy/Caddyfile
+# Caddy gets and renews HTTPS certificates for every site listed here.
+# After editing:  docker compose exec caddy caddy reload --config /etc/caddy/Caddyfile
+
+{
+	email danny@wingnutstables.com
+}
+
+wtc.wingnutstables.com {
+	request_body {
+		max_size 50MB    # same as the old ingress proxy-body-size
+	}
+	reverse_proxy wtc-intranet:3000
+}
