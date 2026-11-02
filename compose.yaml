@@ -1,0 +1,45 @@
+# /opt/sites/compose.yaml — all personal sites on sites-nyc3-1
+#
+#   docker compose up -d                 start / update everything
+#   docker compose logs -f <service>     follow one app's logs
+#   docker compose pull <service> && docker compose up -d <service>   deploy a new image
+#
+# Only Caddy publishes ports. Apps are reachable only through Caddy
+# (Docker bypasses ufw for published ports, so never add `ports:` to an app).
+
+name: sites
+
+services:
+  caddy:
+    image: caddy:2
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"   # HTTP/3
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data        # certificates — keep this volume
+      - caddy_config:/config
+    mem_limit: 128m
+
+  # ---------------------------------------------------------------
+  # Wingnut Trading intranet — wtc.wingnutstables.com
+  # ---------------------------------------------------------------
+  wtc-intranet:
+    image: ghcr.io/dannygypsy/wtc-intranet:3.0.7
+    restart: unless-stopped
+    env_file: ./env/wtc-intranet.env
+    environment:
+      NODE_ENV: production
+      ALLOWED_EMAILS: "ixdaniel@mac.com,ixdaniel@me.com,danny@wingnutstables.com"
+    volumes:
+      - ./certs:/etc/ssl/do:ro    # DO database CA, same path as on k8s
+    expose:
+      - "3000"
+    mem_limit: 128m               # k8s limit, which it ran under fine
+    cpus: 0.5
+
+volumes:
+  caddy_data:
+  caddy_config:
