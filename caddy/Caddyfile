@@ -28,7 +28,7 @@ wtc.wingnutstables.com {
 	reverse_proxy wtc-intranet:3000
 }
 
-www.groop.zone, chicharron.groop.zone, test.groop.zone, www.groopzone.com, test.groopzone.com, www.wingnutstables.com, test.wingnutstables.com {
+www.groop.zone, test.groop.zone, www.groopzone.com, test.groopzone.com, www.wingnutstables.com, test.wingnutstables.com {
 	request_body {
 		max_size 50MB
 	}
@@ -40,6 +40,18 @@ www.groop.zone, chicharron.groop.zone, test.groop.zone, www.groopzone.com, test.
 		lb_policy round_robin
 		# If one copy is restarting, retry the other instead of failing.
 		lb_try_duration 5s
+		header_up X-Real-IP {client_ip}
+	}
+}
+
+# GroopZone 3 (the rewrite) — test site, real database.
+chicharron.groop.zone {
+	request_body {
+		max_size 50MB
+	}
+	reverse_proxy groopzone3:3000 {
+		# The real visitor IP (Caddy reads it from Cloudflare); the app's rate
+		# limits use this header first.
 		header_up X-Real-IP {client_ip}
 	}
 }

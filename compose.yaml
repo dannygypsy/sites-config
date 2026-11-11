@@ -71,6 +71,30 @@ services:
     cpus: 1.5                     # per copy; leaves room for the other apps
 
   # ---------------------------------------------------------------
+  # GroopZone 3 (the Next.js rewrite) — TEST: chicharron.groop.zone only,
+  # against the real database alongside the old app. When it replaces the
+  # old app, move the other hostnames over in caddy/Caddyfile.
+  # Same database and CA certificate as the old app; its own secrets.
+  # ---------------------------------------------------------------
+  groopzone3:
+    image: ghcr.io/dannygypsy/groopzone3:3.0.0-alpha.1
+    restart: unless-stopped
+    env_file: ./env/groopzone3.env
+    environment:
+      NODE_ENV: production
+      DB_PORT: "25060"
+      DB_NAME: groopzone
+      DB_SSL: "true"
+      DB_SSL_CA: /etc/ssl/do/ca-certificate.crt
+      BETTER_AUTH_URL: https://chicharron.groop.zone
+    volumes:
+      - ./certs:/etc/ssl/do:ro    # DO database CA
+    expose:
+      - "3000"
+    mem_limit: 384m               # Next.js standalone server; raise if OOMKilled
+    cpus: 1.0
+
+  # ---------------------------------------------------------------
   # GroopZone scheduled jobs — never started by `up`; run by the systemd
   # timers in systemd/ as:  docker compose run --rm groopzone-job <script> [args]
   # Same image, secrets and DB certificate as the app.

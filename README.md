@@ -6,7 +6,8 @@ Hosting config for my personal sites, all on one DigitalOcean droplet running Do
 |---|---|---|
 | wtc.wingnutstables.com | `wtc-intranet` | always |
 | fadretreat.com (+ www, test) | `fadretreat` | always |
-| www.groop.zone, www.groopzone.com, www.wingnutstables.com (+ test, chicharron) | `groopzone` | always |
+| www.groop.zone, www.groopzone.com, www.wingnutstables.com (+ test) | `groopzone` | always |
+| chicharron.groop.zone (GroopZone 3 test) | `groopzone3` | always |
 | hunt.wingnutstables.com | `wingnut-hunt` | only during events |
 
 ## The server
